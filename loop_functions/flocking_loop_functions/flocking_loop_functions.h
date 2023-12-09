@@ -5,7 +5,7 @@
 #include <argos3/core/simulator/entity/floor_entity.h>
 #include <argos3/core/utility/math/range.h>
 #include <argos3/core/utility/math/rng.h>
-
+#include <set>
 using namespace argos;
 using namespace std;
 
@@ -46,8 +46,7 @@ private:
    Real last_time_in_seconds; 
    
    map<string, CVector2> robotPos;
-   vector<string> connectedList;
-   
+   map<string, vector<string>> connectedList;
 
    //UInt32 m_unCollectedFood;
    //SInt64 m_nEnergy;

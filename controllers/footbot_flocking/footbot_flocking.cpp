@@ -276,7 +276,7 @@ CVector2 CFootBotFlocking::FlockingVector() {
 		for(map<string, CVector2>::iterator it= robotPos.begin(); it!= robotPos.end(); ++it) {
 			//LOG<< "it->second="<< it->second<< ", pos2D="<< pos2D << endl;
 			//LOG<<"(it->second - pos2D).Length()="<<(it->second - pos2D).Length() << ", dist="<< sReadings.BlobList[i]->Distance <<endl;
-			if( abs((it->second - pos2D).Length() - 0.01 * sReadings.BlobList[i]->Distance) < 0.1 ){
+			if( abs((it->second - pos2D).Length()* 100 - sReadings.BlobList[i]->Distance) < 1.0 ){
 				//LOG<< "get the neigbor "<< it->first << endl;
 				neighborID = it->first;
 				connectedRobots[neighborID] = sReadings.BlobList[i]->Distance;

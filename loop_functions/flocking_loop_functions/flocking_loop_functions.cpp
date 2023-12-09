@@ -162,12 +162,12 @@ void CFlockingLoopFunctions::PreStep() {
    //UInt32 unRestingFBs = 0;
    /* Check whether a robot is on a food item */
    CSpace::TMapPerType& m_cFootbots = GetSpace().GetEntitiesByType("foot-bot");
-   
    robotPos.clear();
    bool collide_flag = 0;
    for(CSpace::TMapPerType::iterator it = m_cFootbots.begin();
        it != m_cFootbots.end();
        ++it) {
+	
       /* Get handle to foot-bot entity and controller */
       CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(it->second);
       CFootBotFlocking& cController = dynamic_cast<CFootBotFlocking&>(cFootBot.GetControllableEntity().GetController());
@@ -182,22 +182,55 @@ void CFlockingLoopFunctions::PreStep() {
                cFootBot.GetEmbodiedEntity().GetOriginAnchor().Position.GetY());
       robotPos[cController.GetId()] = cPos;  
       
-      LOG << "ID="<< cController.GetId() << ", pos = " << cPos << endl;
-     
-     //for(map<string, double>::iterator it= cController.connectedRobots.begin(); it!= cController.connectedRobots.end(); ++it) {
-	 //  LOG<< "connected "<< it->first << endl;
-	  // }  
+      //LOG << "ID="<< cController.GetId() << ", pos = " << cPos << endl;
+     connectedList.clear();
+     for(map<string, double>::iterator itr= cController.connectedRobots.begin(); itr!= cController.connectedRobots.end(); ++itr) {
+	   //LOG<< "connected "<< it->first << endl;
+	   connectedList[cController.GetId()].push_back(itr->first);
+	   }  
    }
+   
+   LOG<< "display connected robots ..." << endl;
+   for(map<string, vector<string> >::iterator itr= connectedList.begin(); itr!= connectedList.end(); ++itr){
+	   LOG<< itr->first << " connects to " <<endl;
+	   for(size_t i = 0;  i < itr->second.size(); i++){
+		   LOG << itr->second[i]<< endl;
+		   }
+	   }
    
    /* Get handle to the first foot-bot entity and controller */
    CFootBotEntity& cFootBot = *any_cast<CFootBotEntity*>(m_cFootbots.begin()->second);
    CFootBotFlocking& cController = dynamic_cast<CFootBotFlocking&>(cFootBot.GetControllableEntity().GetController());
    
-    for(map<string, double>::iterator it= cController.connectedRobots.begin(); it!= cController.connectedRobots.end(); ++it) {
-	  LOG<< "selected ID="<< cController.GetId() << ", connected "<< it->first << endl;
+   set<string> visited;
+   string rid;
+   vector<string> IDStack;
+   visited.insert(cController.GetId());
+   
+   for(map<string, double>::iterator itr= cController.connectedRobots.begin(); itr!= cController.connectedRobots.end(); ++itr) {
+	  auto tt = visited.find(itr->first);
+	  if (tt == visited.end()) {
+		   // insert to the stack
+		   IDStack.push_back(itr->first);
+		  }
 	 }   
-   
-   
+   //LOG<< "selected ID="<< cController.GetId() << ", connected "<< it->first << endl;
+   while(!IDStack.empty()){
+		rid = IDStack.back();
+		IDStack.pop_back();
+		visited.insert(rid);
+		for(size_t i =0; i < connectedList[rid].size(); i++){
+			auto tt = visited.find(connectedList[rid][i]);
+			if(tt == visited.end()) {
+				// insert to the stack
+				IDStack.push_back(connectedList[rid][i]);
+			}
+		} 
+   }  
+   for (set<string>::iterator itr = visited.begin(); itr != visited.end(); ++itr) {
+        std::cout <<"visited id " << *itr << " "<<endl;
+    }
+      
    //increase the distance to neighbors
    curr_time_in_seconds = getSimTimeInSeconds();
       if(collide_flag == 1 && curr_time_in_seconds - last_time_in_seconds >= 2 && curr_time_in_seconds > 0){
